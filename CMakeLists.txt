@@ -1,3 +1,3 @@
-project(Lab2)
+project(Lab3)
 
-add_executable(Lab2 main.cpp)
+add_executable(Lab3 main.cpp classes.h subclasses.h root.h)

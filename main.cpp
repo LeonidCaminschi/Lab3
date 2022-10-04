@@ -5,118 +5,100 @@ using namespace Roles;
 int main() {
     cout << "Marauder 1st class" << endl;
 
-    int enemyhp1 = 10;
-    int enemyhp2 = 15;
-
     Marauder player1;
+    Marauder player2;
     player1.rage();
-    player1.fear(enemyhp1);
-    player1.attack(enemyhp1);
-    player1.dual_chop(enemyhp2);
+    player1.fear(player2);
+    player2.defend(player1.attack());
+    player2.defend(player1.dual_chop());
+    player1.meditate();
 
-    cout << "Wizard 2nd class" << endl;
+    cout << endl << "Wizard 2nd class" << endl;
 
-    enemyhp1 = 10;
-    enemyhp2 = 15;
-    int enemyarmor = 8;
+    Wizard player3;
+    Wizard player4;
+    player3.reflection();
+    player4.defend(player3.arcane_trap(player4));
+    player4.defend(player3.attack());
+    player4.defend(player3.thunderStrike());
+    player3.meditate();
 
-    Wizard player2;
-    player2.reflection();
-    player2.arcane_trap(enemyhp2, enemyarmor);
-    player2.attack(enemyhp1);
-    player2.thunderStrike(enemyhp2);
+    cout << endl << "Rogue 3rd class" << endl;
 
-    cout << "Rogue 3rd class" << endl;
+    Rogue player5;
+    Rogue player6;
+    player5.intoTheShadows();
+//    player5.smokeScreen();
+    player6.defend(player5.attack());
+    player6.defend(player5.poisonStrike());
+    player5.meditate();
 
-    enemyhp1 = 10;
-    enemyhp2 = 15;
-    int enemyaccuracy = 33;
+    cout << endl << "Crusader 4th class" << endl;
 
-    Rogue player3;
-    player3.intoTheShadows();
-    player3.smokeScreen(enemyaccuracy);
-    player3.attack(enemyhp1);
-    player3.poisonStrike(enemyhp2);
+    Crusader player7;
+    Crusader player8;
+    player7.holy_heal();
+    player8.defend(player7.attack());
+    player8.defend(player7.armorBash());
+    player7.meditate();
+    player8.defend(player7.lastBreathe());
 
-    cout << "Crusader 4th class" << endl;
+    cout << endl << "Highwayman 5th class" << endl;
 
-    enemyhp1 = 10;
-    enemyhp2 = 15;
-    int allyhp = 1;
+    Highwayman player9;
+    Highwayman player10;
+    player10.defend(player9.shoot());
+    player10.defend(player9.attack());
+    player10.defend(player9.ignite());
+    player10.eatOrange();
+    player9.meditate();
 
-    Crusader player4;
-    player4.holy_heal();
-    player4.attack(enemyhp1);
-    player4.holyForce(enemyhp2);
-    player4.lastBreathe(allyhp);
+    cout << endl << "Abomination 6th class" << endl;
 
-    cout << "Highwayman 5th class" << endl;
+    Abomination player11;
+    Abomination player12;
+    player12.defend(player11.attack());
+    player11.beastTransform();
+    player12.defend(player11.lunge());
+    player12.defend(player11.bite());
+    player11.meditate();
 
-    enemyhp1 = 10;
-    enemyhp2 = 15;
+    cout << endl << "Knight 7th class" << endl;
 
-    Highwayman player5;
-    player5.shoot(enemyhp1);
-    player5.attack(enemyhp1);
-    player5.ignite(enemyhp2);
-    player5.eatOrange();
+    Knight player13;
+    Knight player14;
+    player13.fotify();
+    player14.defend(player13.attack());
+    player14.defend(player13.lunge());
+    player13.shield_bash();
 
-    cout << "Abomination 6th class" << endl;
+    cout << endl << "Necromancer 8th class" << endl;
 
-    enemyhp1 = 10;
-    enemyhp2 = 15;
+    Necromancer player15;
+    Necromancer player16;
+    player15.undead_armor();
+    player16.defend(player15.steal());
+    player16.defend(player15.attack());
+    player15.meditate();
+    player16.defend(player15.summonUndead());
 
-    Abomination player6;
-    player6.attack(enemyhp1);
-    player6.beastTransform();
-    player6.lunge(enemyhp1);
-    player6.bite(enemyhp2);
+    cout << endl << "Priest 9th class" << endl;
 
-    cout << "Knight 7th class" << endl;
+    Priest player17;
+    Priest player18;
+    player18.defend(player17.holyFire());
+    player18.holyHeal();
+//    player17.revive(player16);
+    player18.defend(player17.attack());
+    player17.meditate();
 
-    enemyhp1 = 10;
-    enemyhp2 = 15;
-    bool stun_status = false;
+    cout << endl << "Summoner 10th classs" << endl;
 
-    Knight player7;
-    player7.fotify();
-    player7.attack(enemyhp1);
-    player7.lunge(enemyhp1);
-    player7.shield_bash(enemyhp2, stun_status);
-
-    cout << "Necromancer 8th class" << endl;
-
-    enemyhp1 = 10;
-    enemyhp2 = 15;
-
-    Necromancer player8;
-    player8.undead_armor();
-    player8.steal(enemyhp1);
-    player8.attack(enemyhp2);
-    player8.summonUndead();
-
-    cout << "Priest 9th class" << endl;
-
-    enemyhp1 = 10;
-    enemyhp2 = 15;
-    allyhp = 8;
-    bool alive = false;
-
-    Priest player9;
-    player9.holyHeal(allyhp);
-    allyhp = 0;
-    player9.revive(allyhp, alive);
-    player9.attack(enemyhp1);
-    player9.holyFire(enemyhp2);
-
-    cout << "Summoner 10th classs" << endl;
-
-    enemyhp1 = 10;
-    enemyhp2 = 15;
-
-    Summoner player10;
-    player10.attack(enemyhp1);
-    player10.summonBear(enemyhp1);
-    player10.summonSpirit(enemyhp2);
-    player10.summonGuardian(enemyhp2);
+    Summoner player19;
+    Summoner player20;
+    player20.defend(player19.attack());
+    player20.defend(player19.summonBear());
+    player20.defend(player19.summonSpirit());
+    player20.defend(player19.summonGuardian());
+    player19.meditate();
 }

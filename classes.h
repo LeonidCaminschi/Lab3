@@ -2,726 +2,533 @@
 
 #include <iostream>
 
+#include "subclasses.h"
+
 using namespace std;
 
 namespace Roles {
 
-    struct Marauder { // 1st class
+    struct Marauder : public SubRole::StrengthBased { // 1st class
     private:
-        int health;
-        int max_health;
-        int armor;
-        int mana;
-        int max_mana;
-        int strength;
-        int dexterity;
-        int intelligence;
-        int luck;
-        bool alive;
+        bool buffed;
     public:
         Marauder() :
-        max_health(35),
-        armor(20),
-        max_mana(12),
-        strength(22),
-        dexterity(16),
-        intelligence(8),
-        luck(13),
-        alive(true)
+            SubRole::StrengthBased()
         {
+            name = "Marauder";
+            max_health = 35;
+            armor = 20;
+            max_mana = 12;
+            strength = 22;
+            luck = 13;
             health = max_health;
             mana = max_mana;
+            buffed = false;
         }
 
         void rage() {
-            strength += 5;
-            health -= 5;
-            mana -= 3;
-        }
-
-        void attack(int &enemy_health) {
-            enemy_health -= strength;
-            if(enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
-            }
-            else {
-                cout << "Enemy has been anihilated" << endl;
+            if (!buffed) {
+                strength += 5;
+                health -= 5;
+                mana -= 3;
+                if (!check_alive()) cout << name << " is dead another challenger shall take his place" << endl;
+                else cout << name << " used rage gained strength and lost a bit of hp and mana" << endl;
             }
         }
 
-        void check_alive() {
-            if(health <= 0) {
-                cout << "Marauder is dead continue your way without him" << endl;
-                alive = false;
+        template <class T> // TODO: not all classes have strength
+        void fear(T& enemy) {
+            if (strength > enemy.strength) {
+                enemy.strength -= 5;
+                cout << "Marauder feared the enemy reducing his strength" << endl;
+            } else {
+                cout << "Marauder's fear failed due to enemy being stronger than him" << endl;
             }
         }
 
-        void defend(int incoming_attack) {
-            health -= (incoming_attack - armor < 0)?0:incoming_attack - armor;
-            check_alive();
-        }
-
-        void fear(int &enemy_strength) {
-            if (strength > enemy_strength) {
-                enemy_strength -= 5;
-                cout << "enemy strength reduced by 5 units" << endl;
+        int dual_chop() {
+            if (mana >= 9) {
+                std::cout << name << " dual chopped the enemy and dealt damage equal to " << strength * 3 / 4 * 2
+                          << " hp" << std::endl;
+                mana -= 9;
+                return strength * 3 / 4 * 2;
+            } else {
+                std::cout << name << " failed to use dual chop due to lack of mana" << endl;
+                return 0;
             }
-        }
-
-        void dual_chop(int &enemy_health) {
-            enemy_health -= strength * 3/4 * 2;
         }
     };
 
-    struct Wizard { // 2nd class
+    struct Wizard : public SubRole::IntelligenceBased { // 2nd class
     private:
-        int health;
-        int max_health;
-        int armor;
-        int mana;
-        int max_mana;
-        int strength;
-        int dexterity;
-        int intelligence;
-        int luck;
-        bool alive;
+        bool buffed;
     public:
-        Wizard() :
-                max_health(20),
-                armor(12),
-                max_mana(32),
-                strength(6),
-                dexterity(16),
-                intelligence(26),
-                luck(14),
-                alive(true)
-        {
+        Wizard() {
+            name = "Wizard";
+            max_health = 20;
+            armor = 12;
+            max_mana = 32;
+            intelligence = 26;
+            luck = 14;
+            alive = true;
             health = max_health;
             mana = max_mana;
+            buffed = false;
         }
 
         void reflection() {
-            armor += 10;
-            mana -= 8;
-        }
-
-        void attack(int &enemy_health) {
-            enemy_health -= intelligence;
-            if(enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
-            }
-            else {
-                cout << "Enemy has been anihilated" << endl;
+            if (!buffed) {
+                if (mana >= 8) {
+                    armor += 10;
+                    mana -= 8;
+                    buffed = true;
+                    cout << name << " used reflection raising his armor" << endl;
+                } else {
+                    cout << name << " failed to use reflection due to lack of mana" << endl;
+                }
             }
         }
 
-        void check_alive() {
-            if(health <= 0) {
-                cout << "Wizard is dead continue your way without him" << endl;
-                alive = false;
+        template <class T>
+        int arcane_trap(T& enemy) {
+            if (mana >= 12) {
+                cout << name << " used arcane trap shredding their armor and dealing a bit of true damage equal to 5 hp" << endl;
+                enemy.armor -= (enemy.armor - 3 < 0) ? enemy.armor : 3;
+                mana -= 12;
+                return 5;
+            } else {
+                cout << name << " failed to use arcane trap due to lack of mana" << endl;
+                return 0;
             }
         }
 
-        void defend(int incoming_attack) {
-            health -= (incoming_attack - armor < 0)?0:incoming_attack - armor;
-            check_alive();
-        }
-
-        void arcane_trap(int &enemy_health, int &enemy_armor) {
-            enemy_health -= (enemy_health - 5 < 0)?enemy_health:5;
-            enemy_armor -= (enemy_armor - 3 < 0)?enemy_armor:3;
-        }
-
-        void thunderStrike(int &enemy_health) {
-            enemy_health -= intelligence + strength * 3/2;
-            if(enemy_health > 0) {
-                cout << "Enemy has been smited but has" << enemy_health << " more hp after the attack" << endl;
-            }
-            else {
-                cout << "Enemy has been perished into ashes" << endl;
+        int thunderStrike() {
+            if (mana >= 15) {
+                std::cout << name << " used thunder strike the enemy and dealt true damage equal to "
+                          << intelligence * 3 / 2 << " hp" << std::endl;
+                mana -= 15;
+                return intelligence * 3 / 2;
+            } else {
+                cout << name << " failed to use thunder strike due to lack of mana" << endl;
+                return 0;
             }
         }
     };
 
-    struct Rogue { // 3rd class
+    struct Rogue : SubRole::DexterityBased{ // 3rd class
     private:
-        int health;
-        int max_health;
-        int armor;
-        int mana;
-        int max_mana;
-        int strength;
-        int dexterity;
-        int intelligence;
-        int luck;
-        bool alive;
+        bool buffed;
     public:
-        Rogue() :
-                max_health(15),
-                armor(9),
-                max_mana(24),
-                strength(18),
-                dexterity(31),
-                intelligence(26),
-                luck(21),
-                alive(true) {
+        Rogue() {
+            name = "Rogue";
+            max_health = 15;
+            armor = 9;
+            max_mana = 24;
+            strength = 18;
+            dexterity = 31;
+            luck = 21;
+            alive = true;
             health = max_health;
             mana = max_mana;
+            buffed = false;
+
         }
 
         void intoTheShadows() {
-            dexterity += 10;
-            mana -= 7;
-        }
-
-        void attack(int &enemy_health) {
-            enemy_health -= dexterity - 1 / 4 * strength;
-            if (enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
-            } else {
-                cout << "Enemy has been anihilated" << endl;
+            if (!buffed) {
+                if (mana >= 7) {
+                    dexterity += 10;
+                    mana -= 7;
+                    buffed = true;
+                    cout << name << " covered himself with darkness to hide" << endl;
+                } else {
+                    cout << name << " failed to cover himself darkness due to lack of mana" << endl;
+                }
             }
-        }
-
-        void check_alive() {
-            if (health <= 0) {
-                cout << "Rogue is dead continue your way without him" << endl;
-                alive = false;
-            }
-        }
-
-        void defend(int incoming_attack) {
-            health -= (incoming_attack - armor + dexterity * 1 / 5 < 0) ? 0 : incoming_attack - armor;
-            check_alive();
         }
 
         void smokeScreen(int &enemy_accuracy) {
             enemy_accuracy /= 3;
         }
 
-        void poisonStrike(int &enemy_health) {
-            enemy_health -= dexterity + strength * 2;
-            if (enemy_health > 0) {
-                cout << "Enemy has been poisoned but has" << enemy_health << " more hp after the attack" << endl;
+        int poisonStrike() {
+            if (mana >= 12) {
+                cout << name << " used poison strike and dealt true damage equal to " << dexterity + strength * 2 << endl;
+                return dexterity + strength * 2;
             } else {
-                cout << "Enemy has been strongly poisoned and has beathed its last breath" << endl;
+                cout << name << " failed to use poison strike due to lack of mana" << endl;
+                return 0;
             }
         }
     };
 
-    struct Crusader { // 4th class
-    private:
-        int health;
-        int max_health;
-        int armor;
-        int mana;
-        int max_mana;
-        int strength;
-        int dexterity;
-        int intelligence;
-        int luck;
-        bool alive;
-        int faith;
+    struct Crusader : public SubRole::FaithBased { // 4th class
     public:
-        Crusader() :
-                max_health(40),
-                armor(18),
-                max_mana(12),
-                strength(18),
-                dexterity(4),
-                intelligence(7),
-                luck(8),
-                alive(true),
-                faith(18)
-        {
+        Crusader() {
+            name = "Crusader";
+            max_health = 40;
+            armor = 18;
+            max_mana = 12;
+            luck = 8;
+            alive = true;
+            faith = 18;
+            strength = 18;
             health = max_health;
             mana = max_mana;
         }
 
         void holy_heal() {
-            health += faith;
-            mana -= 12;
-            cout << "Crusader has been fully healed" << endl;
-        }
-
-        void attack(int &enemy_health) {
-            enemy_health -= strength;
-            if(enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
-            }
-            else {
-                cout << "Enemy has been anihilated" << endl;
+            if (mana >= 12) {
+                if (health + faith > max_health) {
+                    health = max_health;
+                } else {
+                    health += faith;
+                }
+                mana -= 12;
+                cout << name << " has been healed by the holy force current hp " << health << endl;
+            } else {
+                cout << name << " has faile to heal due to lack of mana " << endl;
             }
         }
 
-        void check_alive() {
-            if(health <= 0) {
-                cout << "Crusader is dead continue your way without him" << endl;
-                alive = false;
-            }
+        int armorBash() {
+            cout << name << " jumped on the enemy in his heavy armor dealing " << armor << " true damage" << endl;
+            return armor;
         }
 
-        void defend(int incoming_attack) {
-            health -= (incoming_attack - armor < 0)?0:incoming_attack - armor;
-            check_alive();
-        }
-
-        void holyForce(int &enemy_health) {
-            enemy_health -= (enemy_health - armor < 0)?enemy_health:enemy_health - armor;
-        }
-
-        void lastBreathe(int &ally_hp) {
-            ally_hp = 2 * max_health;
+        int lastBreathe() {
+            cout << name << " used the remaining of his life to launch a huge attack dying in the process" << endl;
+            health = 0;
+            return faith * 5/4;
         }
     };
 
-    struct Highwayman { // 5th class
-    private:
-        int health;
-        int max_health;
-        int armor;
-        int mana;
-        int max_mana;
-        int strength;
-        int dexterity;
-        int intelligence;
-        int luck;
-        bool alive;
+    struct Highwayman : SubRole::DexterityBased { // 5th class
     public:
-        Highwayman() :
-                max_health(20),
-                armor(10),
-                max_mana(9),
-                strength(23),
-                dexterity(16),
-                intelligence(9),
-                luck(18),
-                alive(true)
-        {
+        Highwayman() {
+            name = "Highwayman";
+            max_health = 20;
+            armor = 10;
+            max_mana = 9;
+            strength = 23;
+            luck = 18;
+            alive = true;
             health = max_health;
             mana = max_mana;
         }
 
-        void shoot(int &enemy_health) {
-            enemy_health -= 3/2 * strength;
-            if(enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
-            }
-            else {
-                cout << "Enemy has been anihilated" << endl;
-            }
-            mana -= 3;
-        }
-
-        void attack(int &enemy_health) {
-            enemy_health -= strength;
-            if(enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
-            }
-            else {
-                cout << "Enemy has been anihilated" << endl;
+        int shoot() {
+            if (mana >= 3) {
+                mana -= 3;
+                cout << name << " shoot the enemy dealing damage equal to " << (3 / 2 * strength) << endl;
+                return (3 / 2 * strength);
+            } else {
+                cout << name << " was unable to shoot due to lack of mana and bullets " << endl;
+                return 0;
             }
         }
 
-        void check_alive() {
-            if(health <= 0) {
-                cout << "Highwayman is dead continue your way without him" << endl;
-                alive = false;
+        int ignite() {
+            if (mana >= 1) {
+                mana -= 1;
+                cout << name << " ignited a barrel with poweder dealing flat " << 15 << " points of damage" << endl;
+                return 15;
+            } else {
+                cout << name << " could not ignite the barrel due to lack of mana and matches" << endl;
+                return 0;
             }
-        }
-
-        void defend(int incoming_attack) {
-            health -= (incoming_attack - armor < 0)?0:incoming_attack - armor;
-            check_alive();
-        }
-
-        void ignite(int &enemy_health) {
-            enemy_health -= 15;
         }
 
         void eatOrange() {
-            health = max_health;
-            max_health -= 1;
+            if (mana >= 9) {
+                health = max_health;
+                max_health -= 1;
+                mana -= 9;
+                cout << name << " ate an orange healing to full hp but decreasing max hp" << endl;
+            } else {
+                cout << name << " could not heal to full hp due to lack of mana and oranges" << endl;
+            }
         }
     };
 
-    struct Abomination { // 6th class
+    struct Abomination : SubRole::FaithBased { // 6th class
     private:
-        int health;
-        int max_health;
-        int armor;
-        int mana;
-        int max_mana;
-        int strength;
-        int dexterity;
-        int intelligence;
-        int luck;
-        bool alive;
         bool beast;
     public:
-        Abomination() :
-                max_health(32),
-                armor(17),
-                max_mana(2),
-                strength(25),
-                dexterity(10),
-                intelligence(5),
-                luck(14),
-                alive(true),
-                beast(false)
-        {
+        Abomination() {
+            name = "Abomination";
+            max_health = 32;
+            armor = 17;
+            max_mana = 2;
+            strength = 25;
+            luck = 14;
+            alive = true;
+            beast = false;
+            faith = 2;
             health = max_health;
             mana = max_mana;
         }
 
-        void lunge(int &enemy_health) {
-            enemy_health -= 3/2 * strength;
-            if(enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
+        int lunge() {
+            if (mana >= 3) {
+                mana -= 3;
+                cout << name << " dealt lunged at the enemy dealing true damage equal to " << 3 / 2 * strength << endl;
+                return 3 / 2 * strength;
+            } else {
+                cout << name << " failed to lunge due to lack of mana" << endl;
+                return 0;
             }
-            else {
-                cout << "Enemy has been anihilated" << endl;
-            }
-            mana -= 3;
-        }
-
-        void attack(int &enemy_health) {
-            enemy_health -= strength;
-            if(enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
-            }
-            else {
-                cout << "Enemy has been anihilated" << endl;
-            }
-        }
-
-        void check_alive() {
-            if(health <= 0) {
-                cout << "Abomination is dead continue your way without him" << endl;
-                alive = false;
-            }
-        }
-
-        void defend(int incoming_attack) {
-            health -= (incoming_attack - armor < 0)?0:incoming_attack - armor;
-            check_alive();
         }
 
         void beastTransform() {
-            strength *= 2;
-            health /= 2;
-            max_health /= 2;
-            beast = true;
+            if (!beast) {
+                strength *= 2;
+                health /= 2;
+                max_health /= 2;
+                beast = true;
+                cout << name << " turned into a beast greatly incesing strength but greatly decreasing health" << endl;
+            } else {
+                cout << name << " could not turn into a beast due to already being one" << endl;
+            }
         }
 
-        void bite(int &enemy_health) {
+        int bite() {
             if (beast) {
-                enemy_health -= strength*2;
+                if (mana >= 1) {
+                    cout << name << " bit his opponent while in beast form dealing " << strength*2 << " true damage" << endl;
+                    return strength*2;
+                } else {
+                    cout << name << " could not bite the enemy due to lack of mana " << endl;
+                    return 0;
+                }
+            } else {
+                cout << name << " could not bit the enemy due to him not being in beast form" << endl;
+                return 0;
             }
         }
     };
 
-    struct Knight { // 7th class
+    struct Knight : SubRole::StrengthBased { // 7th class
     private:
-        int health;
-        int max_health;
-        int armor;
-        int mana;
-        int max_mana;
-        int strength;
-        int dexterity;
-        int intelligence;
-        int luck;
-        bool alive;
-        int faith;
+        bool buffed;
     public:
-        Knight() :
-                max_health(42),
-                armor(21),
-                max_mana(0),
-                strength(21),
-                dexterity(4),
-                intelligence(2),
-                luck(11),
-                alive(true),
-                faith(18)
-        {
+        Knight() {
+            name = "Knight";
+            max_health = 42;
+            armor = 21;
+            max_mana = 0;
+            strength = 21;
+            luck = 11;
+            alive = true;
             health = max_health;
             mana = max_mana;
+            buffed = false;
         }
 
-        void lunge(int &enemy_health) {
-            enemy_health -= 3 / 2 * strength;
-            if (enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
-            } else {
-                cout << "Enemy has been anihilated" << endl;
-            }
-            mana -= 3;
-        }
-
-        void attack(int &enemy_health) {
-            enemy_health -= strength;
-            if (enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
-            } else {
-                cout << "Enemy has been anihilated" << endl;
-            }
-        }
-
-        void check_alive() {
-            if (health <= 0) {
-                cout << "Knight is dead continue your way without him" << endl;
-                alive = false;
-            }
-        }
-
-        void defend(int incoming_attack) {
-            health -= (incoming_attack - armor < 0) ? 0 : incoming_attack - armor;
-            check_alive();
+        int lunge() {
+            cout << name << " by the sheer power he lunges at the enemy dealing " << 3 / 2 * strength << " damage" << endl;
+            return 3 / 2 * strength;
         }
 
         void fotify() {
-            armor += 1 / 4 * armor;
+            if (!buffed) {
+                armor += 1 / 4 * armor;
+                cout << name << " inceased his armor" << endl;
+                buffed = true;
+            } else {
+                cout << name << " couldn't increase his armor any more" << endl;
+            }
         }
 
-        void shield_bash(int &enemy_health, bool &enemy_stun_status) {
-            enemy_health -= 1 / 2 * strength;
-            if (enemy_health > 0) {
-                cout << "Shield bash but enemy has " << enemy_health << " more hp after the attack" << endl;
-                enemy_stun_status = true;
-            } else {
-                cout << "Enemy has been anihilated" << endl;
-            }
+        int shield_bash() {
+            cout << name << " shield bashed the enemy to deal " << 1 / 2 * strength << endl;
+            return 1 / 2 * strength;
         }
     };
 
-    struct Necromancer { // 8th class
+    struct Necromancer : SubRole::Summoner { // 8th class
     private:
-        int health;
-        int max_health;
-        int armor;
-        int mana;
-        int max_mana;
-        int strength;
-        int dexterity;
-        int intelligence;
-        int luck;
-        bool alive;
-        int summoned;
+        bool buffed;
     public:
-        Necromancer() :
-                max_health(31),
-                armor(12),
-                max_mana(20),
-                strength(5),
-                dexterity(5),
-                intelligence(19),
-                luck(13),
-                alive(true),
-                summoned(0)
-        {
+        Necromancer() {
+            name = "Necromancer";
+            max_health = 31;
+            armor = 12;
+            max_mana = 20;
+            intelligence = 19;
+            luck = 13;
+            alive = true;
             health = max_health;
             mana = max_mana;
+            buffed = false;
+            summons = 0;
+            cumulative_attack = 0;
         }
 
-        void steal(int &enemy_health) {
-            enemy_health -= 1 / 2 * intelligence;
-            if (enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
+        int steal() {
+            if (mana >= 3) {
+                mana -= 3;
+                health += 1 / 4 * intelligence;
+                cout << name << " stolen the lifeforce of the enemy dealing " << 1 / 2 * intelligence << " damage and healing "
+                << 1 / 4 * intelligence << endl;
+                return 1 / 2 * intelligence;
             } else {
-                cout << "Enemy has been anihilated" << endl;
+                cout << name << " could not draim the lifeforce of the enemy due to lack of mana" << endl;
+                return 0;
             }
-            mana -= 3;
-            health += 1 / 4 * intelligence;
-        }
-
-        void attack(int &enemy_health) {
-            enemy_health -= intelligence;
-            if (enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
-            } else {
-                cout << "Enemy has been anihilated" << endl;
-            }
-        }
-
-        void check_alive() {
-            if (health <= 0) {
-                cout << "Necromancer is dead continue your way without him" << endl;
-                alive = false;
-            }
-        }
-
-        void defend(int incoming_attack) {
-            health -= (incoming_attack - armor < 0) ? 0 : incoming_attack - armor;
-            check_alive();
         }
 
         void undead_armor() {
-            armor += 1 / 2 * armor;
-            mana -= 8;
+            if (!buffed) {
+                if (mana >= 8) {
+                    armor += 1 / 2 * armor;
+                    mana -= 8;
+                    cout << name << " has applied the corpses of fallen heroes to his armor" << endl;
+                } else {
+                    cout << name << " has failed to increase armor due lack of mana" << endl;
+                }
+            } else {
+                cout << name << " has failed to increase armor due to him already doing it" << endl;
+            }
         }
 
-        void summonUndead() {
-            summoned++;
-            mana -= 15;
+        int summonUndead() {
+            if (mana >= 15) {
+                if (summons < 3) {
+                    mana -= 15;
+                    cumulative_attack += 7;
+                    summons++;
+                    cout << name << " has summoned an extra zombie to the battle" << endl;
+                } else {
+                    cout << name << " could not summon the enemy due to lack of battlefield space" << endl;
+                }
+            } else {
+                cout << name << " could not summon the enemy due to lack of battlefield space" << endl;
+            }
+            return cumulative_attack;
         }
     };
 
-    struct Priest { // 9th class
-    private:
-        int health;
-        int max_health;
-        int armor;
-        int mana;
-        int max_mana;
-        int strength;
-        int dexterity;
-        int intelligence;
-        int luck;
-        bool alive;
-        int faith;
+    struct Priest : SubRole::FaithBased { // 9th class
     public:
-        Priest() :
-                max_health(28),
-                armor(8),
-                max_mana(25),
-                strength(6),
-                dexterity(8),
-                intelligence(17),
-                luck(12),
-                alive(true),
-                faith(21)
-        {
-            health = max_health;
-            mana = max_mana;
-        }
-
-        void holyFire(int &enemy_health) {
-            enemy_health -= 1 / 2 * intelligence;
-            if (enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
-            } else {
-                cout << "Enemy has been anihilated" << endl;
-            }
-            mana -= 5;
-            armor++;
-        }
-
-        void attack(int &enemy_health) {
-            enemy_health -= intelligence;
-            if (enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
-            } else {
-                cout << "Enemy has been anihilated" << endl;
-            }
-        }
-
-        void check_alive() {
-            if (health <= 0) {
-                cout << "Priest is dead continue your way without him" << endl;
-                alive = false;
-            }
-        }
-
-        void defend(int incoming_attack) {
-            health -= (incoming_attack - armor < 0) ? 0 : incoming_attack - armor;
-            check_alive();
-        }
-
-        void holyHeal(int &allyhp) {
-            allyhp += allyhp/2;
-            mana -= 10;
-        }
-
-        void revive(int &allyhp, bool &alive) {
+        Priest() {
+            name = "Priest";
+            max_health = 28;
+            armor = 8;
+            max_mana = 25;
+            strength = 6;
+            luck = 12;
             alive = true;
-            allyhp = 1;
-            mana -= 25;
-        }
-    };
-
-    struct Summoner { // 8th class
-    private:
-        int health;
-        int max_health;
-        int armor;
-        int mana;
-        int max_mana;
-        int strength;
-        int dexterity;
-        int intelligence;
-        int luck;
-        bool alive;
-        int summoned;
-    public:
-        Summoner() :
-                max_health(24),
-                armor(11),
-                max_mana(31),
-                strength(1),
-                dexterity(11),
-                intelligence(23),
-                luck(9),
-                alive(true),
-                summoned(0)
-        {
+            faith = 21;
             health = max_health;
             mana = max_mana;
         }
 
-        void summonSpirit(int &enemy_health) {
-            summoned++;
-            mana -= 3;
-            enemy_health -= 1/4 * intelligence;
-            if (enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
+        int holyFire() {
+            if (mana >= 5) {
+                mana -= 5;
+                armor++;
+                cout << name << " has casted holy fire on the enemies dealing " << 1 / 2 * faith << " damage" << endl;
+                return 1 / 2 * faith;
             } else {
-                cout << "Enemy has been anihilated" << endl;
+                cout << name << "could not cast holy fire due to lack of mana" << endl;
+                return 0;
             }
         }
 
-        void attack(int &enemy_health) {
-            enemy_health -= intelligence;
-            if (enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
+        void holyHeal() {
+            if (mana >= 10) {
+                if (health + 3/4 * faith > max_health) {
+                    health = max_health;
+                } else {
+                    health += faith;
+                }
+                mana -= 10;
+                cout << name << " has been healed by the holy force current hp " << health << endl;
             } else {
-                cout << "Enemy has been anihilated" << endl;
+                cout << name << " has failed to heal due to lack of mana " << endl;
             }
         }
 
-        void check_alive() {
-            if (health <= 0) {
-                cout << "Summoner is dead continue your way without him" << endl;
-                alive = false;
-            }
-        }
-
-        void defend(int incoming_attack) {
-            health -= (incoming_attack - armor < 0) ? 0 : incoming_attack - armor;
-            check_alive();
-        }
-
-        void summonGuardian(int &enemy_health) {
-            armor += armor;
-            mana -= 10;
-            enemy_health -= intelligence;
-            if (enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
+        template <class T>
+        void revive(T& ally) { //TODO cant revive 1 on 1
+            if (mana >= 25) {
+                if (ally.health <= 0) {
+                    alive = true;
+                    ally.health = 1;
+                    mana -= 25;
+                    cout << name << " revived " << ally.name << " by the power of Gods" << endl;
+                } else {
+                    cout << name << " could not revive " << ally.name << " because they are still alive" << endl;
+                }
             } else {
-                cout << "Enemy has been anihilated" << endl;
+                cout << name << " could not cast revive due to lack of mana" << endl;
             }
         }
+    };
 
-        void summonBear(int &enemy_health) {
-            summoned++;
-            mana -= 15;
-            enemy_health -= 2*intelligence;
-            if (enemy_health > 0) {
-                cout << "Enemy has " << enemy_health << " more hp after the attack" << endl;
+    struct Summoner : SubRole::Summoner { // 8th class
+    public:
+        Summoner() {
+            name = "Summoner";
+            max_health = 24;
+            armor = 11;
+            max_mana = 31;
+            intelligence = 23;
+            luck = 9;
+            alive = true;
+            summons = 0;
+            cumulative_attack = 0;
+            health = max_health;
+            mana = max_mana;
+        }
+
+        int summonSpirit() {
+            if (summons < 3) {
+                if (mana >= 3) {
+                    summons++;
+                    mana -= 3;
+                    cumulative_attack += 1 / 4 * intelligence;
+                    cout << name << " has summoned a spirit on the battlefield" << endl;
+                } else {
+                    cout << name << " could not summon spirit due to lack of mana" << endl;
+                }
             } else {
-                cout << "Enemy has been anihilated" << endl;
+                cout << name << " could not summon spirit due to lack of battlefield space" << endl;
             }
+            return cumulative_attack;
+        }
+
+        int summonGuardian() {
+            if (summons < 3) {
+                if (mana >= 15) {
+                    summons += 2;
+                    mana -= 15;
+                    cumulative_attack += 2 / 4 * intelligence;
+                    cout << name << " has summoned a golem on the battlefield thus increasing his defence" << endl;
+                } else {
+                    cout << name << " could not summon golem due to lack of mana" << endl;
+                }
+            } else {
+                cout << name << " could not summon golem due to lack of battlefield space" << endl;
+            }
+            return cumulative_attack;
+        }
+
+        int summonBear() {
+            if (summons < 3) {
+                if (mana >= 10) {
+                    summons += 2;
+                    mana -= 10;
+                    cumulative_attack += 3 / 4 * intelligence;
+                    cout << name << " has summoned a bear on the battlefield thus increasing his defence" << endl;
+                } else {
+                    cout << name << " could not summon spirit due to lack of mana" << endl;
+                }
+            } else {
+                cout << name << " could not summon spirit due to lack of battlefield space" << endl;
+            }
+            return cumulative_attack;
         }
     };
 } // namespace Roles
